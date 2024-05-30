@@ -16,6 +16,7 @@
     <modules>
         <module>redis-base</module>
         <module>spring-redis</module>
+        <module>hm-dianping</module>
     </modules>
 
     <properties>
