@@ -4,7 +4,6 @@ import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
-import com.hmdp.entity.Shop;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -14,11 +13,10 @@ import java.time.LocalDateTime;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 
-import static com.hmdp.utils.RedisConstants.*;
+import static com.hmdp.utils.RedisConstants.CACHE_NULL_TTL;
+import static com.hmdp.utils.RedisConstants.LOCK_SHOP_KEY;
 
 @Component
 @Slf4j
@@ -84,7 +82,7 @@ public class CacheClient {
     return r;
   }
 
-  private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newSingleThreadExecutor();
+  private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
 
   /**
    * 逻辑过期解决缓存击穿
@@ -108,7 +106,6 @@ public class CacheClient {
     if (StrUtil.isBlank(json)) {
       //3.不存在,直接返回
       return null;
-
     }
     //4.命中，先把json反序列化为对象
     RedisData redisData = JSONUtil.toBean(json, RedisData.class);
@@ -120,7 +117,7 @@ public class CacheClient {
       //5.1 未过期，直接返回店铺信息
       return r;
     }
-    //5.2 已过期，需要缓存重建
+    //6 已过期，需要缓存重建
     //6.1 获取互斥锁
     String lockKey = LOCK_SHOP_KEY + id;
     final boolean isLock = tryLock(lockKey);
@@ -130,7 +127,9 @@ public class CacheClient {
       CACHE_REBUILD_EXECUTOR.submit(() -> {
         try {
           //查询数据库
-          final R r1 = dbFallback.apply(id);
+          R r1 = dbFallback.apply(id);
+          //模拟重建超时
+          Thread.sleep(200);
           //写入redis
           this.setWithLogicalExpire(key, r1, time, unit);
         } catch (Exception e) {
