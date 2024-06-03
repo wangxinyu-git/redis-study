@@ -128,7 +128,7 @@ public class CacheClient {
         try {
           //查询数据库
           R r1 = dbFallback.apply(id);
-          //模拟重建超时
+          //模拟重建缓存超时
           Thread.sleep(200);
           //写入redis
           this.setWithLogicalExpire(key, r1, time, unit);

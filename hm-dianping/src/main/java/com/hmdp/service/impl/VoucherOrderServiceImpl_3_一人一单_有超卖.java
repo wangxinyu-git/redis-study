@@ -1,17 +1,14 @@
 package com.hmdp.service.impl;
 
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.dto.Result;
-import com.hmdp.dto.UserDTO;
 import com.hmdp.entity.SeckillVoucher;
 import com.hmdp.entity.VoucherOrder;
 import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -27,20 +24,17 @@ import java.time.LocalDateTime;
  * @author 虎哥
  * @since 2021-12-22
  */
-@Slf4j
-@Service
-public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
+//@Service
+public class VoucherOrderServiceImpl_3_一人一单_有超卖 extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
   @Autowired
   private ISeckillVoucherService seckillVoucherService;
   @Autowired
   private RedisIdWorker redisIdWorker;
   @Autowired
   private StringRedisTemplate stringRedisTemplate;
-  //spring高版本存在循环依赖
-  /*@Autowired
-  IVoucherOrderService voucherOrderService;*/
 
   @Override
+  @Transactional
   public Result seckillVoucher(Long voucherId) {
     //1.查询优惠券
     final SeckillVoucher voucher = seckillVoucherService.getById(voucherId);
@@ -58,15 +52,6 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
       //库存不足
       return Result.fail("库存不足!");
     }
-    Long userId = UserHolder.getUser().getId();
-    synchronized (userId.toString().intern()) {
-      IVoucherOrderService proxy = ((IVoucherOrderService) AopContext.currentProxy());
-      return proxy.createVoucherOrder(voucherId);
-    }
-  }
-
-  @Transactional
-  public synchronized Result createVoucherOrder(Long voucherId) {
     //5.一人一单
     Long userId = UserHolder.getUser().getId();
     Integer count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();
@@ -96,4 +81,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     return Result.ok(orderId);
   }
 
+  @Override
+  public Result createVoucherOrder(Long voucherId) {
+    return null;
+  }
 }

@@ -56,6 +56,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     //互斥锁解决缓存击穿
     //Shop shop = queryWithMutex(id);
     //逻辑过期解决缓存击穿
+//    Shop shop = this.queryWithLogicalExpire(id);
     Shop shop = cacheClient.queryWithLogicalExpire(CACHE_SHOP_KEY, id, Shop.class, this::getById, 10L, TimeUnit.SECONDS);
     if (shop == null) {
       return Result.fail("店铺不存在!");
@@ -64,7 +65,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
   }
 
 
-//  private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
+  private static final ExecutorService CACHE_REBUILD_EXECUTOR = Executors.newFixedThreadPool(10);
 
   /**
    * 逻辑过期解决缓存击穿
@@ -73,7 +74,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
    * @param id-商铺id
    * @return
    */
-  /*public Shop queryWithLogicalExpire(Long id) {
+  public Shop queryWithLogicalExpire(Long id) {
     //1.从redis查询商铺缓存
     String key = CACHE_SHOP_KEY + id;
     String shopJson = stringRedisTemplate.opsForValue().get(key);
@@ -112,7 +113,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
     }
     //7.返回过期的商铺信息(不管锁成功或者失败都要返回)
     return shop;
-  }*/
+  }
 
 
   /**
@@ -243,17 +244,17 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
    * @param key
    * @return
    */
-  /*private boolean tryLock(String key) {
+  private boolean tryLock(String key) {
     final Boolean flag = stringRedisTemplate.opsForValue().setIfAbsent(key, "1", 10, TimeUnit.SECONDS);
     return BooleanUtil.isTrue(flag);
-  }*/
+  }
 
   /**
    * 释放锁
    *
    * @param key
    */
-/*  private void unlock(String key) {
+  private void unlock(String key) {
     stringRedisTemplate.delete(key);
-  }*/
+  }
 }
