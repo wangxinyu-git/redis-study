@@ -10,6 +10,8 @@ import com.hmdp.service.IVoucherOrderService;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -28,13 +30,15 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 //@Service
-public class VoucherOrderServiceImpl_4_悲观锁_解决一人一单 extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
+public class VoucherOrderServiceImpl_5_redisson1 extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
   @Autowired
   private ISeckillVoucherService seckillVoucherService;
   @Autowired
   private RedisIdWorker redisIdWorker;
   @Autowired
   private StringRedisTemplate stringRedisTemplate;
+  @Autowired
+  private RedissonClient redissonClient;
   //spring高版本存在循环依赖
   /*@Autowired
   IVoucherOrderService voucherOrderService;*/
@@ -58,9 +62,19 @@ public class VoucherOrderServiceImpl_4_悲观锁_解决一人一单 extends Serv
       return Result.fail("库存不足!");
     }
     Long userId = UserHolder.getUser().getId();
-    synchronized (userId.toString().intern()) {
+    //5.创建锁对象
+    RLock lock = redissonClient.getLock("lock:order:" + userId);
+    //6.获取锁
+    boolean isLock = lock.tryLock();
+    if (!isLock) {
+      //获取锁失败
+      return Result.fail("一人只允许下一单!");
+    }
+    try {
       IVoucherOrderService proxy = ((IVoucherOrderService) AopContext.currentProxy());
       return proxy.createVoucherOrder(voucherId);
+    } finally {
+      lock.unlock();
     }
   }
 

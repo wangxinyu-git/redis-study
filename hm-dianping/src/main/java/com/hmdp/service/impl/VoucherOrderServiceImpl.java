@@ -9,8 +9,11 @@ import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.hmdp.utils.RedisIdWorker;
+import com.hmdp.utils.SimpleRedisLock;
 import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -36,6 +39,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
   private RedisIdWorker redisIdWorker;
   @Autowired
   private StringRedisTemplate stringRedisTemplate;
+  @Autowired
+  private RedissonClient redissonClient;
   //spring高版本存在循环依赖
   /*@Autowired
   IVoucherOrderService voucherOrderService;*/
@@ -59,14 +64,24 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
       return Result.fail("库存不足!");
     }
     Long userId = UserHolder.getUser().getId();
-    synchronized (userId.toString().intern()) {
+    //5.创建锁对象
+    RLock lock = redissonClient.getLock("lock:order:" + userId);
+    //6.获取锁
+    boolean isLock = lock.tryLock();
+    if (!isLock) {
+      //获取锁失败
+      return Result.fail("一人只允许下一单!");
+    }
+    try {
       IVoucherOrderService proxy = ((IVoucherOrderService) AopContext.currentProxy());
       return proxy.createVoucherOrder(voucherId);
+    } finally {
+      lock.unlock();
     }
   }
 
   @Transactional
-  public synchronized Result createVoucherOrder(Long voucherId) {
+  public Result createVoucherOrder(Long voucherId) {
     //5.一人一单
     Long userId = UserHolder.getUser().getId();
     Integer count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();
