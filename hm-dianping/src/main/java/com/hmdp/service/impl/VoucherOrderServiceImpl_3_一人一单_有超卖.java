@@ -7,11 +7,11 @@ import com.hmdp.entity.VoucherOrder;
 import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
+import com.hmdp.service.IVoucherOrderService_1_秒杀优化前;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -25,7 +25,7 @@ import java.time.LocalDateTime;
  * @since 2021-12-22
  */
 //@Service
-public class VoucherOrderServiceImpl_3_一人一单_有超卖 extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
+public class VoucherOrderServiceImpl_3_一人一单_有超卖 extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService_1_秒杀优化前 {
   @Autowired
   private ISeckillVoucherService seckillVoucherService;
   @Autowired

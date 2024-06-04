@@ -7,13 +7,13 @@ import com.hmdp.entity.VoucherOrder;
 import com.hmdp.mapper.VoucherOrderMapper;
 import com.hmdp.service.ISeckillVoucherService;
 import com.hmdp.service.IVoucherOrderService;
+import com.hmdp.service.IVoucherOrderService_1_秒杀优化前;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
@@ -28,7 +28,7 @@ import java.time.LocalDateTime;
  */
 @Slf4j
 //@Service
-public class VoucherOrderServiceImpl_4_悲观锁_解决一人一单 extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
+public class VoucherOrderServiceImpl_4_悲观锁_解决一人一单 extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService_1_秒杀优化前 {
   @Autowired
   private ISeckillVoucherService seckillVoucherService;
   @Autowired
@@ -59,7 +59,7 @@ public class VoucherOrderServiceImpl_4_悲观锁_解决一人一单 extends Serv
     }
     Long userId = UserHolder.getUser().getId();
     synchronized (userId.toString().intern()) {
-      IVoucherOrderService proxy = ((IVoucherOrderService) AopContext.currentProxy());
+      IVoucherOrderService_1_秒杀优化前 proxy = ((IVoucherOrderService_1_秒杀优化前) AopContext.currentProxy());
       return proxy.createVoucherOrder(voucherId);
     }
   }
