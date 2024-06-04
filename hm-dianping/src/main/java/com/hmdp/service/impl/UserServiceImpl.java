@@ -51,8 +51,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     stringRedisTemplate.opsForValue().set(LOGIN_CODE_KEY + phone, code, LOGIN_CODE_TTL, TimeUnit.MINUTES);
     //5. 发送验证码
     log.debug("发送短信验证码成功，验证码:{}", code);
-    //返回ok
-    return Result.ok();
+    //返回验证码
+    return Result.ok(code);
   }
 
   @Override

@@ -29,7 +29,7 @@ import static com.hmdp.utils.SystemConstants.USER_NICK_NAME_PREFIX;
  * @since 2021-12-22
  */
 @Slf4j
-@Service
+//@Service
 public class UserServiceImpl_session extends ServiceImpl<UserMapper, User> implements IUserService_session {
 
   @Override
