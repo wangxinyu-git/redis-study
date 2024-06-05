@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
@@ -36,7 +35,7 @@ import java.util.concurrent.Executors;
  */
 @Slf4j
 //@Service
-public class VoucherOrderServiceImpl_6_传统阻塞队列优化 extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
+public class VoucherOrderServiceImpl_6_阻塞队列优化 extends ServiceImpl<VoucherOrderMapper, VoucherOrder> implements IVoucherOrderService {
   @Autowired
   private ISeckillVoucherService seckillVoucherService;
   @Autowired
@@ -53,7 +52,7 @@ public class VoucherOrderServiceImpl_6_传统阻塞队列优化 extends ServiceI
   IVoucherOrderService voucherOrderService;*/
   static {
     SECKILL_SCRIPT = new DefaultRedisScript<>();
-    SECKILL_SCRIPT.setLocation(new ClassPathResource("seckill.lua"));
+    SECKILL_SCRIPT.setLocation(new ClassPathResource("seckill1.lua"));
     SECKILL_SCRIPT.setResultType(Long.class);
   }
 

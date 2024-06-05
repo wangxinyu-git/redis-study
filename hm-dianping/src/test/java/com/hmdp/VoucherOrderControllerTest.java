@@ -65,10 +65,7 @@ class VoucherOrderControllerTest {
           Result result = mapper.readerFor(Result.class).readValue(codeJson);
           Assert.isTrue(result.getSuccess(), String.format("获取“%s”手机号的验证码失败", phone));
           String code = result.getData().toString();
-          //LoginFormDTO formDTO = LoginFormDTO.builder().code(code).phone(phone).build();
-          LoginFormDTO formDTO = new LoginFormDTO();
-          formDTO.setCode(code);
-          formDTO.setPhone(phone);
+          LoginFormDTO formDTO = LoginFormDTO.builder().code(code).phone(phone).build();
           String json = mapper.writeValueAsString(formDTO);
           // token
           String tokenJson = mockMvc.perform(MockMvcRequestBuilders
@@ -95,9 +92,10 @@ class VoucherOrderControllerTest {
   private static void writeToTxt(List<String> list, String suffixPath) throws Exception {
     // 1. 创建文件
     File file = new File(System.getProperty("user.dir") + "\\src\\main\\resources" + suffixPath);
-    if (!file.exists()) {
-      file.createNewFile();
+    if (file.exists()) {
+      file.delete();
     }
+    file.createNewFile();
     // 2. 输出
     BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8));
     for (String content : list) {
@@ -105,6 +103,5 @@ class VoucherOrderControllerTest {
       bw.newLine();
     }
     bw.close();
-    System.out.println("写入完成！");
   }
 }
