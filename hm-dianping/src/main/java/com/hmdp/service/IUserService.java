@@ -9,7 +9,7 @@ import javax.servlet.http.HttpSession;
 
 /**
  * <p>
- *  服务类
+ * 服务类
  * </p>
  *
  * @author 虎哥
@@ -20,4 +20,8 @@ public interface IUserService extends IService<User> {
   Result sendCode(String phone);
 
   Result login(LoginFormDTO loginForm);
+
+  Result sign();
+
+  Result signCount();
 }
